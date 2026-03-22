@@ -1,0 +1,218 @@
+generator client {
+  provider      = "prisma-client-js"
+  output        = "../generated/prisma"
+  previewFeatures = ["multiSchema"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  schemas  = ["my_wallet"]
+}
+
+// ============================================================
+// 공통
+// ============================================================
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  transactions Transaction[]
+  budgets      Budget[]
+  trades       Trade[]
+  accounts     StockAccount[]
+
+  @@map("users")
+  @@schema("my_wallet")
+}
+
+// ============================================================
+// 가계부 모듈
+// ============================================================
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+  SAVING
+
+  @@schema("my_wallet")
+}
+
+model Category {
+  id        String          @id @default(cuid())
+  name      String
+  type      TransactionType
+  sortOrder Int             @default(0) @map("sort_order")
+  isActive  Boolean         @default(true) @map("is_active")
+
+  transactions Transaction[]
+  budgets      Budget[]
+
+  @@unique([name, type])
+  @@map("categories")
+  @@schema("my_wallet")
+}
+
+model Transaction {
+  id         String          @id @default(cuid())
+  userId     String          @map("user_id")
+  categoryId String          @map("category_id")
+  type       TransactionType
+  title      String
+  amount     Int
+  date       DateTime        @db.Date
+  isFixed    Boolean         @default(false) @map("is_fixed")
+  memo       String?
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user     User     @relation(fields: [userId], references: [id])
+  category Category @relation(fields: [categoryId], references: [id])
+
+  @@index([userId, date])
+  @@index([userId, type, date])
+  @@index([categoryId])
+  @@map("transactions")
+  @@schema("my_wallet")
+}
+
+model Budget {
+  id         String          @id @default(cuid())
+  userId     String          @map("user_id")
+  categoryId String          @map("category_id")
+  type       TransactionType
+  month      DateTime        @db.Date
+  amount     Int
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user     User     @relation(fields: [userId], references: [id])
+  category Category @relation(fields: [categoryId], references: [id])
+
+  @@unique([userId, categoryId, month])
+  @@index([userId, month])
+  @@map("budgets")
+  @@schema("my_wallet")
+}
+
+// ============================================================
+// 주식 모듈
+// ============================================================
+
+enum AccountType {
+  GENERAL
+  ISA
+  PENSION
+  IRP
+
+  @@schema("my_wallet")
+}
+
+enum TradeType {
+  BUY
+  SELL
+
+  @@schema("my_wallet")
+}
+
+model Stock {
+  id       String  @id @default(cuid())
+  code     String  @unique
+  name     String
+  market   String  @default("KRX")
+  isActive Boolean @default(true) @map("is_active")
+
+  trades      Trade[]
+  stockPrices StockPrice[]
+
+  @@map("stocks")
+  @@schema("my_wallet")
+}
+
+model StockAccount {
+  id       String      @id @default(cuid())
+  userId   String      @map("user_id")
+  type     AccountType
+  broker   String
+  alias    String?
+  isActive Boolean     @default(true) @map("is_active")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user   User    @relation(fields: [userId], references: [id])
+  trades Trade[]
+
+  @@unique([userId, type, broker])
+  @@map("stock_accounts")
+  @@schema("my_wallet")
+}
+
+model Trade {
+  id        String    @id @default(cuid())
+  userId    String    @map("user_id")
+  stockId   String    @map("stock_id")
+  accountId String    @map("account_id")
+  type      TradeType
+  tradeDate DateTime  @map("trade_date") @db.Date
+  price     Int
+  quantity  Int
+  reason    String[]
+  memo      String?
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user    User         @relation(fields: [userId], references: [id])
+  stock   Stock        @relation(fields: [stockId], references: [id])
+  account StockAccount @relation(fields: [accountId], references: [id])
+
+  realizedGainsAsBuy  RealizedGain[] @relation("BuyTrade")
+  realizedGainsAsSell RealizedGain[] @relation("SellTrade")
+
+  @@index([userId, stockId, type, tradeDate])
+  @@index([accountId])
+  @@index([tradeDate])
+  @@map("trades")
+  @@schema("my_wallet")
+}
+
+model RealizedGain {
+  id          String @id @default(cuid())
+  buyTradeId  String @map("buy_trade_id")
+  sellTradeId String @map("sell_trade_id")
+  quantity    Int
+  buyPrice    Int    @map("buy_price")
+  sellPrice   Int    @map("sell_price")
+  gain        Int
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  buyTrade  Trade @relation("BuyTrade", fields: [buyTradeId], references: [id])
+  sellTrade Trade @relation("SellTrade", fields: [sellTradeId], references: [id])
+
+  @@index([buyTradeId])
+  @@index([sellTradeId])
+  @@map("realized_gains")
+  @@schema("my_wallet")
+}
+
+model StockPrice {
+  id         String   @id @default(cuid())
+  stockId    String   @unique @map("stock_id")
+  price      Int
+  change     Int      @default(0)
+  changeRate Float    @default(0) @map("change_rate")
+  fetchedAt  DateTime @map("fetched_at")
+
+  stock Stock @relation(fields: [stockId], references: [id])
+
+  @@map("stock_prices")
+  @@schema("my_wallet")
+}
