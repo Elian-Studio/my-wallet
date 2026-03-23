@@ -13,3 +13,6 @@ npm-debug.log*
 
 .DS_Store
 coverage/
+packages/database/generated/
+apps/api/dist/
+apps/web/.next/
