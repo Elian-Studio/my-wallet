@@ -58,8 +58,8 @@
     "coverageDirectory": "../coverage",
     "testEnvironment": "node",
     "moduleNameMapper": {
-      "^@my-wallet/database$": "<rootDir>/../../packages/database/src/index",
-      "^@my-wallet/shared$": "<rootDir>/../../packages/shared/src/index"
+      "^@my-wallet/database$": "<rootDir>/../../../packages/database/src/index",
+      "^@my-wallet/shared$": "<rootDir>/../../../packages/shared/src/index"
     }
   }
 }
