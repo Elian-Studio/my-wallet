@@ -2,6 +2,7 @@ import { Controller, Post, Get, Body, UseGuards, Request } from '@nestjs/common'
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { LoginDto, RegisterDto } from './dto/login.dto';
+import { ResetPasswordDto, VerifyIdentityDto } from './dto/reset-password.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 
 @ApiTags('Auth')
@@ -19,6 +20,18 @@ export class AuthController {
   @ApiOperation({ summary: '로그인' })
   login(@Body() dto: LoginDto) {
     return this.authService.login(dto);
+  }
+
+  @Post('verify-identity')
+  @ApiOperation({ summary: '본인 확인 (이메일 + 이름)' })
+  verifyIdentity(@Body() dto: VerifyIdentityDto) {
+    return this.authService.verifyIdentity(dto);
+  }
+
+  @Post('reset-password')
+  @ApiOperation({ summary: '비밀번호 재설정' })
+  resetPassword(@Body() dto: ResetPasswordDto) {
+    return this.authService.resetPassword(dto);
   }
 
   @Get('profile')

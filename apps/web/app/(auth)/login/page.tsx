@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -84,6 +85,20 @@ export default function LoginPage() {
           <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading ? '로그인 중...' : '로그인'}
           </Button>
+
+          <div className="space-y-1 text-center text-sm">
+            <p>
+              <span className="text-muted-foreground">계정이 없으신가요? </span>
+              <Link href="/register" className="text-primary underline-offset-4 hover:underline">
+                회원가입
+              </Link>
+            </p>
+            <p>
+              <Link href="/reset-password" className="text-muted-foreground underline-offset-4 hover:underline">
+                비밀번호를 잊으셨나요?
+              </Link>
+            </p>
+          </div>
         </form>
       </CardContent>
     </Card>
