@@ -15,14 +15,14 @@ interface LoginResponse {
 }
 
 export async function login(credentials: LoginRequest): Promise<LoginResponse> {
-  const response = await apiClient.post<{ data: LoginResponse }>(
+  const response = await apiClient.post<LoginResponse>(
     '/auth/login',
     credentials,
   );
-  const { accessToken, user } = response.data;
+  const { accessToken, user } = response;
   localStorage.setItem('access_token', accessToken);
   localStorage.setItem('user', JSON.stringify(user));
-  return response.data;
+  return response;
 }
 
 export function logout(): void {

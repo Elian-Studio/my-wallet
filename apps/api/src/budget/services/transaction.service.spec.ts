@@ -420,8 +420,8 @@ describe('TransactionService', () => {
         where: {
           userId: USER_ID,
           date: {
-            gte: new Date(2026, 2, 1),
-            lte: new Date(2026, 3, 0),
+            gte: new Date('2026-03-01'),
+            lte: new Date('2026-03-31'),
           },
         },
       });
@@ -461,12 +461,11 @@ describe('TransactionService', () => {
 
       await service.getMonthlySummary(USER_ID, 2026, 2);
 
-      // 2026년 2월 28일 (평년)
-      const expectedEnd = new Date(2026, 2, 0);
+      // 2026년 2월 28일 (평년) — UTC 기반
       expect(mockPrisma.transaction.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
           where: expect.objectContaining({
-            date: expect.objectContaining({ lte: expectedEnd }),
+            date: expect.objectContaining({ lte: new Date('2026-02-28') }),
           }),
         }),
       );

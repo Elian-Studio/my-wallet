@@ -48,7 +48,12 @@ class ApiClient {
       );
     }
 
-    return response.json();
+    const json = await response.json();
+    // Unwrap the { success, data } envelope from the TransformInterceptor
+    if (json && typeof json === 'object' && 'success' in json && 'data' in json) {
+      return json.data as T;
+    }
+    return json as T;
   }
 
   get<T>(endpoint: string, options?: RequestOptions): Promise<T> {

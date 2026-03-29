@@ -123,8 +123,12 @@ export class TransactionService {
   }
 
   async getMonthlySummary(userId: string, year: number, month: number) {
-    const startDate = new Date(year, month - 1, 1);
-    const endDate = new Date(year, month, 0);
+    const monthStr = `${year}-${String(month).padStart(2, '0')}`;
+    const startDate = new Date(`${monthStr}-01`);
+    const nextMonthDate = new Date(startDate);
+    nextMonthDate.setUTCMonth(nextMonthDate.getUTCMonth() + 1);
+    nextMonthDate.setUTCDate(nextMonthDate.getUTCDate() - 1);
+    const endDate = nextMonthDate;
 
     const transactions = await this.prisma.transaction.findMany({
       where: {

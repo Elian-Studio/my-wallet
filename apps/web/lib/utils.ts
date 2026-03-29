@@ -14,7 +14,8 @@ export function formatAmountWithSign(amount: number): string {
   return sign + new Intl.NumberFormat('ko-KR').format(amount) + '원';
 }
 
-export function formatPercent(rate: number): string {
+export function formatPercent(rate: number | undefined | null): string {
+  if (rate == null || isNaN(rate)) return '0.00%';
   const sign = rate > 0 ? '+' : '';
   return sign + rate.toFixed(2) + '%';
 }

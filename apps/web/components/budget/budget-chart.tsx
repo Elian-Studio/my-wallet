@@ -59,8 +59,8 @@ export function BudgetChart({ data }: BudgetChartProps) {
           labelStyle={{ fontWeight: 600 }}
         />
         <Legend />
-        <Bar dataKey="예산" fill="hsl(var(--primary))" radius={[3, 3, 0, 0]} />
-        <Bar dataKey="실적" fill="hsl(var(--destructive))" radius={[3, 3, 0, 0]} />
+        <Bar dataKey="예산" fill="#6366f1" radius={[3, 3, 0, 0]} />
+        <Bar dataKey="실적" fill="#f97316" radius={[3, 3, 0, 0]} />
       </BarChart>
     </ResponsiveContainer>
   );

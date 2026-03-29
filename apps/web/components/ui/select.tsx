@@ -15,18 +15,37 @@ interface SelectContextValue {
   onValueChange?: (value: string) => void;
   open: boolean;
   setOpen: (open: boolean) => void;
+  registerItem: (value: string, label: string) => void;
+  getLabel: (value: string) => string | undefined;
 }
 
 const SelectContext = React.createContext<SelectContextValue>({
   open: false,
   setOpen: () => {},
+  registerItem: () => {},
+  getLabel: () => undefined,
 });
 
 function Select({ value, onValueChange, children }: SelectProps) {
   const [open, setOpen] = React.useState(false);
+  const [itemLabels, setItemLabels] = React.useState<Map<string, string>>(new Map());
+
+  const registerItem = React.useCallback((val: string, label: string) => {
+    setItemLabels((prev) => {
+      if (prev.get(val) === label) return prev;
+      const next = new Map(prev);
+      next.set(val, label);
+      return next;
+    });
+  }, []);
+
+  const getLabel = React.useCallback(
+    (val: string) => itemLabels.get(val),
+    [itemLabels],
+  );
 
   return (
-    <SelectContext.Provider value={{ value, onValueChange, open, setOpen }}>
+    <SelectContext.Provider value={{ value, onValueChange, open, setOpen, registerItem, getLabel }}>
       <div className="relative">{children}</div>
     </SelectContext.Provider>
   );
@@ -58,8 +77,9 @@ function SelectTrigger({
 }
 
 function SelectValue({ placeholder }: { placeholder?: string }) {
-  const { value } = React.useContext(SelectContext);
-  return <span>{value || placeholder}</span>;
+  const { value, getLabel } = React.useContext(SelectContext);
+  const label = value ? getLabel(value) : undefined;
+  return <span>{label || value || placeholder}</span>;
 }
 
 function SelectContent({
@@ -81,13 +101,12 @@ function SelectContent({
     return () => document.removeEventListener('click', handler);
   }, [open, setOpen]);
 
-  if (!open) return null;
-
   return (
     <div
       role="listbox"
       className={cn(
         'absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md border bg-popover p-1 text-popover-foreground shadow-md',
+        !open && 'hidden',
         className,
       )}
       {...props}
@@ -103,8 +122,15 @@ function SelectItem({
   value,
   ...props
 }: React.HTMLAttributes<HTMLDivElement> & { value: string }) {
-  const { value: selectedValue, onValueChange, setOpen } =
+  const { value: selectedValue, onValueChange, setOpen, registerItem } =
     React.useContext(SelectContext);
+
+  // Register label on mount so SelectValue can look it up
+  React.useEffect(() => {
+    if (typeof children === 'string') {
+      registerItem(value, children);
+    }
+  }, [value, children, registerItem]);
 
   return (
     <div
