@@ -15,6 +15,7 @@ import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { BudgetService } from '../services/budget.service';
 import { BudgetAnalysisService } from '../services/budget-analysis.service';
 import { CreateBudgetDto, UpdateBudgetDto } from '../dto/create-budget.dto';
+import { ApplyAllPreviewDto, ApplyAllBudgetDto } from '../dto/apply-all-budget.dto';
 
 @ApiTags('Budgets')
 @ApiBearerAuth()
@@ -57,6 +58,24 @@ export class BudgetController {
     @Query('month') month: number,
   ) {
     return this.budgetAnalysisService.analyze(req.user.id, year, month);
+  }
+
+  @Post('apply-all/preview')
+  @ApiOperation({ summary: '예산 일괄 적용 미리보기' })
+  previewApplyAll(
+    @Request() req: { user: { id: string } },
+    @Body() dto: ApplyAllPreviewDto,
+  ) {
+    return this.budgetService.previewApplyAll(req.user.id, dto);
+  }
+
+  @Post('apply-all')
+  @ApiOperation({ summary: '예산 일괄 적용' })
+  applyAll(
+    @Request() req: { user: { id: string } },
+    @Body() dto: ApplyAllBudgetDto,
+  ) {
+    return this.budgetService.applyAll(req.user.id, dto);
   }
 
   @Get(':id')

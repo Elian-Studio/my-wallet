@@ -10,6 +10,8 @@ const mockBudgetService = {
   findOne: jest.fn(),
   update: jest.fn(),
   remove: jest.fn(),
+  previewApplyAll: jest.fn(),
+  applyAll: jest.fn(),
 };
 
 const mockBudgetAnalysisService = {
@@ -119,6 +121,41 @@ describe('BudgetController', () => {
 
       expect(mockBudgetService.remove).toHaveBeenCalledWith('user-1', 'b1');
       expect(result).toEqual({ deleted: true });
+    });
+  });
+
+  describe('previewApplyAll (POST /budgets/apply-all/preview)', () => {
+    it('BudgetService.previewApplyAll을 올바른 인자로 호출한다', async () => {
+      const dto = { sourceYear: 2026, sourceMonth: 3, targetYear: 2027 };
+      const expected = {
+        source: { year: 2026, month: 3, budgets: [] },
+        months: [],
+      };
+      mockBudgetService.previewApplyAll.mockResolvedValue(expected);
+
+      const result = await controller.previewApplyAll(mockReq, dto);
+
+      expect(mockBudgetService.previewApplyAll).toHaveBeenCalledWith('user-1', dto);
+      expect(result).toEqual(expected);
+    });
+  });
+
+  describe('applyAll (POST /budgets/apply-all)', () => {
+    it('BudgetService.applyAll을 올바른 인자로 호출한다', async () => {
+      const dto = {
+        sourceYear: 2026,
+        sourceMonth: 3,
+        targetYear: 2027,
+        selectedMonths: [1, 2, 3],
+        conflictMode: 'overwrite' as const,
+      };
+      const expected = { created: 6, updated: 0, skipped: 0 };
+      mockBudgetService.applyAll.mockResolvedValue(expected);
+
+      const result = await controller.applyAll(mockReq, dto);
+
+      expect(mockBudgetService.applyAll).toHaveBeenCalledWith('user-1', dto);
+      expect(result).toEqual(expected);
     });
   });
 });
