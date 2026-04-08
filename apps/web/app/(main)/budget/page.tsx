@@ -7,7 +7,7 @@ import { buttonVariants } from '@/components/ui/button';
 import { MonthPicker } from '@/components/common/month-picker';
 import { AmountDisplay } from '@/components/common/amount-display';
 import { BudgetProgress } from '@/components/budget/budget-progress';
-import { useMonthlySummary, useBudgetAnalysis, useTransactions } from '@/hooks/use-budget';
+import { useMonthlySummary, useBudgetAnalysis, useCategoryBreakdown, useTransactions } from '@/hooks/use-budget';
 import { getCategoryColor, getCategoryHex } from '@/lib/category-colors';
 import {
   Receipt,
@@ -43,6 +43,7 @@ export default function BudgetPage() {
 
   const { summary, loading: summaryLoading } = useMonthlySummary(year, month);
   const { analysis, loading: analysisLoading } = useBudgetAnalysis(year, month);
+  const { breakdown, loading: breakdownLoading } = useCategoryBreakdown(year, month);
 
   // 최근 거래 5건: 해당 월의 첫날~마지막날 범위
   const startDate = `${year}-${String(month).padStart(2, '0')}-01`;
@@ -56,11 +57,11 @@ export default function BudgetPage() {
   });
   const recentTransactions = recentData?.data ?? [];
 
-  // 도넛 차트 데이터: 카테고리별 지출 집계
-  const expenseAnalysis = analysis.filter((a) => a.actual > 0);
-  const pieData = expenseAnalysis.map((item) => ({
+  // 도넛 차트 데이터: 실제 거래 기반 카테고리별 지출 집계
+  const expenseBreakdown = breakdown.filter((b) => b.type === 'EXPENSE');
+  const pieData = expenseBreakdown.map((item) => ({
     name: item.categoryName,
-    value: item.actual,
+    value: item.amount,
     color: getCategoryHex(item.categoryName),
   }));
 
@@ -167,7 +168,7 @@ export default function BudgetPage() {
             <CardTitle className="text-base">카테고리별 지출</CardTitle>
           </CardHeader>
           <CardContent>
-            {analysisLoading ? (
+            {breakdownLoading ? (
               <div className="h-48 bg-muted animate-pulse rounded" />
             ) : pieData.length === 0 ? (
               <div className="flex items-center justify-center h-48 text-muted-foreground text-sm">

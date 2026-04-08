@@ -154,8 +154,18 @@ export function deleteCategory(id: string): Promise<void> {
 
 // ─── Summary API ──────────────────────────────────────────────────────────────
 
+export interface CategoryBreakdownItem {
+  categoryName: string;
+  type: string;
+  amount: number;
+}
+
 export function fetchMonthlySummary(year: number, month: number): Promise<MonthSummary> {
   return apiClient.get<MonthSummary>(`/transactions/summary/${year}/${month}`);
+}
+
+export function fetchCategoryBreakdown(year: number, month: number): Promise<CategoryBreakdownItem[]> {
+  return apiClient.get<CategoryBreakdownItem[]>(`/transactions/breakdown/${year}/${month}`);
 }
 
 // ─── Budget API ───────────────────────────────────────────────────────────────
