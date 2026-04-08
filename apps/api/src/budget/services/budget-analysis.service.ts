@@ -14,9 +14,14 @@ export class BudgetAnalysisService {
     year: number,
     month: number,
   ): Promise<BudgetAnalysisItem[]> {
-    const monthDate = new Date(year, month - 1, 1);
-    const startDate = new Date(year, month - 1, 1);
-    const endDate = new Date(year, month, 0);
+    const monthStr = `${year}-${String(month).padStart(2, '0')}`;
+    const monthDate = new Date(`${monthStr}-01`);
+    const startDate = new Date(`${monthStr}-01`);
+    // Last day of month: first day of next month minus 1 day
+    const nextMonthDate = new Date(monthDate);
+    nextMonthDate.setUTCMonth(nextMonthDate.getUTCMonth() + 1);
+    nextMonthDate.setUTCDate(nextMonthDate.getUTCDate() - 1);
+    const endDate = nextMonthDate;
 
     const budgets = await this.prisma.budget.findMany({
       where: { userId, month: monthDate },

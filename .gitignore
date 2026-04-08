@@ -16,3 +16,5 @@ coverage/
 packages/database/generated/
 apps/api/dist/
 apps/web/.next/
+migration-data/
+test-results/

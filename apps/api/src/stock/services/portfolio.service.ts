@@ -82,9 +82,8 @@ export class PortfolioService {
       const quantity = data.buyQuantity - data.sellQuantity;
       if (quantity <= 0) continue;
 
-      const soldCost = soldCostByStock.get(stockId) ?? 0;
-      const remainingCost = data.totalBuyCost - soldCost;
-      const avgBuyPrice = quantity > 0 ? Math.round(remainingCost / quantity) : 0;
+      // 가중평균 매수가 = 총 매수금액 / 총 매수수량 (매도와 무관하게 일정)
+      const avgBuyPrice = data.buyQuantity > 0 ? Math.round(data.totalBuyCost / data.buyQuantity) : 0;
       const evaluation = data.currentPrice * quantity;
       const invested = avgBuyPrice * quantity;
       const unrealizedGain = evaluation - invested;

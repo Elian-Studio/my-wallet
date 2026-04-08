@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { fetchTransactions, type Transaction } from '@/lib/api/budget';
 import { fetchTrades, type Trade } from '@/lib/api/stock';
+import { formatDate } from '@/lib/utils';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -44,7 +45,7 @@ export function useRecentActivity(limit = 10): UseRecentActivityReturn {
 
         const txItems: ActivityItem[] = txRes.data.map((tx) => ({
           id: `tx-${tx.id}`,
-          date: tx.date,
+          date: formatDate(tx.date),
           type: tx.type as ActivityType,
           description: tx.category?.name ? `${tx.category.name} · ${tx.title}` : tx.title,
           amount: tx.amount,
@@ -53,12 +54,12 @@ export function useRecentActivity(limit = 10): UseRecentActivityReturn {
 
         const tradeItems: ActivityItem[] = tradeRes.data.map((trade) => ({
           id: `trade-${trade.id}`,
-          date: trade.tradeDate,
+          date: formatDate(trade.tradeDate),
           type: trade.type as ActivityType,
           description: trade.stock?.name
             ? `${trade.stock.name} (${trade.stock.code})`
             : `주식 ${trade.type === 'BUY' ? '매수' : '매도'}`,
-          amount: trade.totalAmount,
+          amount: trade.price * trade.quantity,
           source: 'stock',
         }));
 

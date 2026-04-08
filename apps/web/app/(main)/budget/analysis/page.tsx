@@ -19,10 +19,11 @@ import { StatusBadge } from '@/components/common/status-badge';
 import { BudgetChart } from '@/components/budget/budget-chart';
 import { BudgetProgress } from '@/components/budget/budget-progress';
 import { BudgetForm } from '@/components/budget/budget-form';
+import { ApplyAllDialog } from '@/components/budget/apply-all-dialog';
 import { useBudgets, useBudgetAnalysis, useCategories } from '@/hooks/use-budget';
 import type { Budget, CreateBudgetDto, UpdateBudgetDto } from '@/lib/api/budget';
 import type { TransactionType } from '@my-wallet/shared';
-import { BarChart3, Plus, Pencil, Trash2, Settings2 } from 'lucide-react';
+import { BarChart3, Plus, Pencil, Trash2, Settings2, Copy } from 'lucide-react';
 
 const TYPE_LABELS: Record<TransactionType, string> = {
   INCOME: '수입',
@@ -48,9 +49,10 @@ export default function BudgetAnalysisPage() {
 
   const [budgetFormOpen, setBudgetFormOpen] = useState(false);
   const [editingBudget, setEditingBudget] = useState<Budget | null>(null);
+  const [applyAllOpen, setApplyAllOpen] = useState(false);
 
-  const { budgets, loading: budgetsLoading, create, update, remove } = useBudgets(year, month);
-  const { analysis, loading: analysisLoading } = useBudgetAnalysis(year, month);
+  const { budgets, loading: budgetsLoading, create, update, remove, refetch: refreshBudgets } = useBudgets(year, month);
+  const { analysis, loading: analysisLoading, refetch: refreshAnalysis } = useBudgetAnalysis(year, month);
   const { categories } = useCategories();
 
   const handleAddBudget = () => {
@@ -92,10 +94,22 @@ export default function BudgetAnalysisPage() {
               <Settings2 className="h-4 w-4" />
               예산 설정
             </CardTitle>
-            <Button size="sm" variant="outline" onClick={handleAddBudget} className="gap-1.5">
-              <Plus className="h-3.5 w-3.5" />
-              예산 추가
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setApplyAllOpen(true)}
+                disabled={budgets.length === 0}
+                className="gap-1.5"
+              >
+                <Copy className="h-3.5 w-3.5" />
+                올해 일괄 적용
+              </Button>
+              <Button size="sm" variant="outline" onClick={handleAddBudget} className="gap-1.5">
+                <Plus className="h-3.5 w-3.5" />
+                예산 추가
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent className="p-0">
@@ -258,6 +272,18 @@ export default function BudgetAnalysisPage() {
         budget={editingBudget}
         month={monthStr}
         onSubmit={handleBudgetSubmit}
+      />
+
+      {/* Apply All Dialog */}
+      <ApplyAllDialog
+        open={applyAllOpen}
+        onOpenChange={setApplyAllOpen}
+        year={year}
+        month={month}
+        onComplete={() => {
+          refreshBudgets();
+          refreshAnalysis();
+        }}
       />
     </div>
   );

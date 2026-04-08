@@ -155,3 +155,44 @@ export function deleteBudget(id: string): Promise<void> {
 export function fetchBudgetAnalysis(year: number, month: number): Promise<BudgetAnalysisItem[]> {
   return apiClient.get<BudgetAnalysisItem[]>(`/budgets/analysis?year=${year}&month=${month}`);
 }
+
+// ─── Apply-All API ────────────────────────────────────────────────────────────
+
+export interface ApplyAllPreviewMonth {
+  month: number;
+  status: 'new' | 'conflict' | 'same';
+  existing: Budget[];
+}
+
+export interface ApplyAllPreview {
+  source: { year: number; month: number; budgets: Budget[] };
+  months: ApplyAllPreviewMonth[];
+}
+
+export interface ApplyAllResult {
+  created: number;
+  updated: number;
+  skipped: number;
+}
+
+export function previewApplyAll(
+  sourceYear: number,
+  sourceMonth: number,
+  targetYear: number,
+): Promise<ApplyAllPreview> {
+  return apiClient.post<ApplyAllPreview>('/budgets/apply-all/preview', {
+    sourceYear,
+    sourceMonth,
+    targetYear,
+  });
+}
+
+export function applyAllBudgets(params: {
+  sourceYear: number;
+  sourceMonth: number;
+  targetYear: number;
+  selectedMonths: number[];
+  conflictMode: 'skip' | 'overwrite';
+}): Promise<ApplyAllResult> {
+  return apiClient.post<ApplyAllResult>('/budgets/apply-all', params);
+}
