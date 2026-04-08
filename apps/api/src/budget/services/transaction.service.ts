@@ -157,4 +157,38 @@ export class TransactionService {
       balance: totalIncome - totalExpense - totalSaving,
     };
   }
+
+  async getCategoryBreakdown(userId: string, year: number, month: number) {
+    const monthStr = `${year}-${String(month).padStart(2, '0')}`;
+    const startDate = new Date(`${monthStr}-01`);
+    const nextMonthDate = new Date(startDate);
+    nextMonthDate.setUTCMonth(nextMonthDate.getUTCMonth() + 1);
+    nextMonthDate.setUTCDate(nextMonthDate.getUTCDate() - 1);
+    const endDate = nextMonthDate;
+
+    const transactions = await this.prisma.transaction.findMany({
+      where: {
+        userId,
+        date: { gte: startDate, lte: endDate },
+      },
+      include: { category: true },
+    });
+
+    const map = new Map<string, { categoryName: string; type: string; amount: number }>();
+    for (const tx of transactions) {
+      const key = tx.categoryId;
+      const existing = map.get(key);
+      if (existing) {
+        existing.amount += tx.amount;
+      } else {
+        map.set(key, {
+          categoryName: tx.category.name,
+          type: tx.type,
+          amount: tx.amount,
+        });
+      }
+    }
+
+    return Array.from(map.values()).sort((a, b) => b.amount - a.amount);
+  }
 }

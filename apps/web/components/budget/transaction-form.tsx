@@ -56,6 +56,7 @@ export function TransactionForm({
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [isFixed, setIsFixed] = useState(false);
   const [memo, setMemo] = useState('');
+  const [calendarOpen, setCalendarOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -186,7 +187,7 @@ export function TransactionForm({
           {/* Date */}
           <div className="space-y-1.5">
             <label className="text-sm font-medium">날짜</label>
-            <Popover>
+            <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
               <PopoverTrigger asChild>
                 <Button
                   type="button"
@@ -208,6 +209,7 @@ export function TransactionForm({
                   selected={date ? parse(date, 'yyyy-MM-dd', new Date()) : undefined}
                   onSelect={(day) => {
                     if (day) setDate(format(day, 'yyyy-MM-dd'));
+                    setCalendarOpen(false);
                   }}
                   defaultMonth={date ? parse(date, 'yyyy-MM-dd', new Date()) : undefined}
                 />
