@@ -6,6 +6,7 @@ import {
   fetchTransactions,
   fetchCategories,
   fetchMonthlySummary,
+  fetchCategoryBreakdown,
   fetchBudgets,
   fetchBudgetAnalysis,
   createTransaction,
@@ -22,6 +23,7 @@ import {
   type UpdateTransactionDto,
   type CreateBudgetDto,
   type UpdateBudgetDto,
+  type CategoryBreakdownItem,
 } from '@/lib/api/budget';
 import type { PaginatedResponse } from '@my-wallet/shared';
 
@@ -209,6 +211,39 @@ export function useMonthlySummary(year: number, month: number): UseMonthlySummar
   const refetch = useCallback(() => setTick((t) => t + 1), []);
 
   return { summary, loading, error, refetch };
+}
+
+// ─── useCategoryBreakdown ─────────────────────────────────────────────────────
+
+interface UseCategoryBreakdownReturn {
+  breakdown: CategoryBreakdownItem[];
+  loading: boolean;
+  error: string | null;
+}
+
+export function useCategoryBreakdown(year: number, month: number): UseCategoryBreakdownReturn {
+  const [breakdown, setBreakdown] = useState<CategoryBreakdownItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+    fetchCategoryBreakdown(year, month)
+      .then((res) => {
+        if (!cancelled) setBreakdown(res);
+      })
+      .catch((err) => {
+        if (!cancelled) setError(err.message ?? '카테고리별 집계를 불러오지 못했습니다.');
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => { cancelled = true; };
+  }, [year, month]);
+
+  return { breakdown, loading, error };
 }
 
 // ─── useBudgets ───────────────────────────────────────────────────────────────

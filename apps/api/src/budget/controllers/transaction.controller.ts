@@ -58,6 +58,16 @@ export class TransactionController {
     return this.transactionService.getMonthlySummary(req.user.id, year, month);
   }
 
+  @Get('breakdown/:year/:month')
+  @ApiOperation({ summary: '월별 카테고리별 지출/수입/저축 집계' })
+  getCategoryBreakdown(
+    @Request() req: { user: { id: string } },
+    @Param('year') year: number,
+    @Param('month') month: number,
+  ) {
+    return this.transactionService.getCategoryBreakdown(req.user.id, year, month);
+  }
+
   @Get(':id')
   @ApiOperation({ summary: '거래 내역 상세 조회' })
   findOne(
