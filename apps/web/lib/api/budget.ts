@@ -128,6 +128,30 @@ export function fetchSavingCategories(): Promise<Category[]> {
   return apiClient.get<Category[]>('/categories/saving');
 }
 
+export interface CreateCategoryDto {
+  name: string;
+  type: 'INCOME' | 'EXPENSE' | 'SAVING';
+  sortOrder?: number;
+}
+
+export interface UpdateCategoryDto {
+  name?: string;
+  sortOrder?: number;
+  isActive?: boolean;
+}
+
+export function createCategory(dto: CreateCategoryDto): Promise<Category> {
+  return apiClient.post<Category>('/categories', dto);
+}
+
+export function updateCategory(id: string, dto: UpdateCategoryDto): Promise<Category> {
+  return apiClient.put<Category>(`/categories/${id}`, dto);
+}
+
+export function deleteCategory(id: string): Promise<void> {
+  return apiClient.delete<void>(`/categories/${id}`);
+}
+
 // ─── Summary API ──────────────────────────────────────────────────────────────
 
 export function fetchMonthlySummary(year: number, month: number): Promise<MonthSummary> {

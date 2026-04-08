@@ -67,26 +67,77 @@ export function useTransactions(filters: TransactionFilters = {}): UseTransactio
 
   const create = useCallback(
     async (dto: CreateTransactionDto) => {
-      await createTransaction(dto);
-      refetch();
+      const prev = data;
+      // Optimistic: 임시 항목 추가
+      const tempTx: Transaction = {
+        id: `temp-${Date.now()}`,
+        categoryId: dto.categoryId,
+        type: dto.type,
+        title: dto.title,
+        amount: dto.amount,
+        date: dto.date,
+        isFixed: dto.isFixed ?? false,
+        memo: dto.memo,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      if (prev) {
+        setData({ ...prev, data: [tempTx, ...prev.data], total: prev.total + 1 });
+      }
+      try {
+        await createTransaction(dto);
+        refetch(); // 서버 데이터로 교체
+      } catch (err) {
+        setData(prev); // 롤백
+        throw err;
+      }
     },
-    [refetch],
+    [data, refetch],
   );
 
   const update = useCallback(
     async (id: string, dto: UpdateTransactionDto) => {
-      await updateTransaction(id, dto);
-      refetch();
+      const prev = data;
+      // Optimistic: 해당 항목 즉시 업데이트
+      if (prev) {
+        setData({
+          ...prev,
+          data: prev.data.map((tx) =>
+            tx.id === id ? { ...tx, ...dto, updatedAt: new Date().toISOString() } : tx,
+          ),
+        });
+      }
+      try {
+        await updateTransaction(id, dto);
+        refetch();
+      } catch (err) {
+        setData(prev);
+        throw err;
+      }
     },
-    [refetch],
+    [data, refetch],
   );
 
   const remove = useCallback(
     async (id: string) => {
-      await deleteTransaction(id);
-      refetch();
+      const prev = data;
+      // Optimistic: 해당 항목 즉시 제거
+      if (prev) {
+        setData({
+          ...prev,
+          data: prev.data.filter((tx) => tx.id !== id),
+          total: prev.total - 1,
+        });
+      }
+      try {
+        await deleteTransaction(id);
+        refetch();
+      } catch (err) {
+        setData(prev);
+        throw err;
+      }
     },
-    [refetch],
+    [data, refetch],
   );
 
   return { data, loading, error, refetch, create, update, remove };
