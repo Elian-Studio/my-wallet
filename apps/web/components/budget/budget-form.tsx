@@ -55,7 +55,7 @@ export function BudgetForm({
     if (budget) {
       setType(budget.type);
       setCategoryId(budget.categoryId);
-      setAmount(String(budget.amount));
+      setAmount(budget.amount.toLocaleString('ko-KR'));
     } else {
       setType('EXPENSE');
       setCategoryId('');
@@ -163,11 +163,15 @@ export function BudgetForm({
           <div className="space-y-1.5">
             <label className="text-sm font-medium">예산 금액 (원)</label>
             <Input
-              type="number"
+              type="text"
+              inputMode="numeric"
               value={amount}
-              onChange={(e) => setAmount(e.target.value)}
+              onChange={(e) => {
+                const raw = e.target.value.replace(/[^0-9]/g, '');
+                if (raw === '') { setAmount(''); return; }
+                setAmount(Number(raw).toLocaleString('ko-KR'));
+              }}
               placeholder="0"
-              min={1}
             />
           </div>
 

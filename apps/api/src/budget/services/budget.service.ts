@@ -157,11 +157,12 @@ export class BudgetService {
     let updated = 0;
     let skipped = 0;
 
-    await this.prisma.$transaction(async (tx) => {
-      for (const m of selectedMonths) {
-        const monthDate = new Date(
-          `${targetYear}-${String(m).padStart(2, '0')}-01`,
-        );
+    await this.prisma.$transaction(
+      async (tx) => {
+        for (const m of selectedMonths) {
+          const monthDate = new Date(
+            `${targetYear}-${String(m).padStart(2, '0')}-01`,
+          );
 
         for (const sourceBudget of sourceBudgets) {
           const existing = await tx.budget.findUnique({
@@ -197,7 +198,9 @@ export class BudgetService {
           }
         }
       }
-    });
+      },
+      { timeout: 30000 },
+    );
 
     return { created, updated, skipped };
   }
