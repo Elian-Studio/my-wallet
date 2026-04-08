@@ -21,6 +21,7 @@ import { BudgetProgress } from '@/components/budget/budget-progress';
 import { BudgetForm } from '@/components/budget/budget-form';
 import { ApplyAllDialog } from '@/components/budget/apply-all-dialog';
 import { useBudgets, useBudgetAnalysis, useCategories } from '@/hooks/use-budget';
+import { getCategoryColor } from '@/lib/category-colors';
 import type { Budget, CreateBudgetDto, UpdateBudgetDto } from '@/lib/api/budget';
 import type { TransactionType } from '@my-wallet/shared';
 import { BarChart3, Plus, Pencil, Trash2, Settings2, Copy } from 'lucide-react';
@@ -114,7 +115,11 @@ export default function BudgetAnalysisPage() {
         </CardHeader>
         <CardContent className="p-0">
           {budgetsLoading ? (
-            <div className="py-8 text-center text-muted-foreground text-sm">불러오는 중...</div>
+            <div className="space-y-2 p-4">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="h-10 bg-muted animate-pulse rounded" />
+              ))}
+            </div>
           ) : budgets.length === 0 ? (
             <div className="py-8 text-center text-muted-foreground text-sm">
               설정된 예산이 없습니다. 예산을 추가해보세요.
@@ -133,7 +138,15 @@ export default function BudgetAnalysisPage() {
                 {budgets.map((budget) => (
                   <TableRow key={budget.id}>
                     <TableCell className="font-medium">
-                      {budget.category?.name ?? budget.categoryId}
+                      {(() => {
+                        const catName = budget.category?.name ?? '기타';
+                        const color = getCategoryColor(catName);
+                        return (
+                          <span className={`text-xs px-2 py-0.5 rounded-md ${color.bg} ${color.text}`}>
+                            {catName}
+                          </span>
+                        );
+                      })()}
                     </TableCell>
                     <TableCell>
                       <Badge variant={TYPE_VARIANTS[budget.type]}>
@@ -185,9 +198,7 @@ export default function BudgetAnalysisPage() {
         </CardHeader>
         <CardContent>
           {analysisLoading ? (
-            <div className="h-48 flex items-center justify-center text-muted-foreground text-sm">
-              불러오는 중...
-            </div>
+            <div className="h-48 bg-muted animate-pulse rounded" />
           ) : (
             <BudgetChart data={analysis} />
           )}
@@ -201,7 +212,11 @@ export default function BudgetAnalysisPage() {
         </CardHeader>
         <CardContent className="p-0">
           {analysisLoading ? (
-            <div className="py-8 text-center text-muted-foreground text-sm">불러오는 중...</div>
+            <div className="space-y-2 p-4">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="h-10 bg-muted animate-pulse rounded" />
+              ))}
+            </div>
           ) : analysis.length === 0 ? (
             <div className="py-8 text-center text-muted-foreground text-sm">
               분석할 데이터가 없습니다.
