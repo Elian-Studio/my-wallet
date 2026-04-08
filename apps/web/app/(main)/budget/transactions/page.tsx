@@ -11,7 +11,7 @@ import {
   SelectItem,
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
-import { TransactionTable } from '@/components/budget/transaction-table';
+import { TransactionTable, TransactionSkeleton } from '@/components/budget/transaction-table';
 import { TransactionForm } from '@/components/budget/transaction-form';
 import { useTransactions, useCategories } from '@/hooks/use-budget';
 import type { TransactionType } from '@my-wallet/shared';
@@ -154,9 +154,7 @@ export default function TransactionsPage() {
         </CardHeader>
         <CardContent className="p-0">
           {loading ? (
-            <div className="py-12 text-center text-muted-foreground text-sm">
-              불러오는 중...
-            </div>
+            <TransactionSkeleton />
           ) : error ? (
             <div className="py-12 text-center text-destructive text-sm">{error}</div>
           ) : (

@@ -19,20 +19,21 @@ async function main() {
   // 2. 카테고리 생성
   const expenseCategories = [
     { name: '식비', sortOrder: 1 },
-    { name: '교통', sortOrder: 2 },
-    { name: '통신', sortOrder: 3 },
+    { name: '교통비', sortOrder: 2 },
+    { name: '통신비', sortOrder: 3 },
     { name: '월세', sortOrder: 4 },
-    { name: '생활', sortOrder: 5 },
-    { name: '경조', sortOrder: 6 },
-    { name: '문화', sortOrder: 7 },
+    { name: '생활비', sortOrder: 5 },
+    { name: '경조비', sortOrder: 6 },
+    { name: '문화비', sortOrder: 7 },
     { name: '공과금', sortOrder: 8 },
+    { name: '동생 기여금', sortOrder: 9 },
     { name: '기타', sortOrder: 99 },
   ];
 
   const savingCategories = [
     { name: '보험', sortOrder: 1 },
-    { name: '청약', sortOrder: 2 },
-    { name: '연금', sortOrder: 3 },
+    { name: '청약저축', sortOrder: 2 },
+    { name: '연금저축', sortOrder: 3 },
     { name: '투자', sortOrder: 4 },
   ];
 
