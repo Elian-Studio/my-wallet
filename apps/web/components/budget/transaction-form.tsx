@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { format, parse } from 'date-fns';
+import { ko } from 'date-fns/locale';
 import type { TransactionType } from '@my-wallet/shared';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,6 +20,10 @@ import {
   SelectContent,
   SelectItem,
 } from '@/components/ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { CalendarIcon } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import type { Transaction, Category, CreateTransactionDto, UpdateTransactionDto } from '@/lib/api/budget';
 
 interface TransactionFormProps {
@@ -58,7 +64,7 @@ export function TransactionForm({
       setType(transaction.type);
       setCategoryId(transaction.categoryId);
       setTitle(transaction.title);
-      setAmount(String(transaction.amount));
+      setAmount(transaction.amount.toLocaleString('ko-KR'));
       setDate(transaction.date.slice(0, 10));
       setIsFixed(transaction.isFixed);
       setMemo(transaction.memo ?? '');
@@ -165,22 +171,48 @@ export function TransactionForm({
           <div className="space-y-1.5">
             <label className="text-sm font-medium">금액 (원)</label>
             <Input
-              type="number"
+              type="text"
+              inputMode="numeric"
               value={amount}
-              onChange={(e) => setAmount(e.target.value)}
+              onChange={(e) => {
+                const raw = e.target.value.replace(/[^0-9]/g, '');
+                if (raw === '') { setAmount(''); return; }
+                setAmount(Number(raw).toLocaleString('ko-KR'));
+              }}
               placeholder="0"
-              min={1}
             />
           </div>
 
           {/* Date */}
           <div className="space-y-1.5">
             <label className="text-sm font-medium">날짜</label>
-            <Input
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-            />
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className={cn(
+                    'w-full justify-start text-left font-normal',
+                    !date && 'text-muted-foreground',
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {date
+                    ? format(parse(date, 'yyyy-MM-dd', new Date()), 'yyyy년 M월 d일', { locale: ko })
+                    : '날짜 선택'}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={date ? parse(date, 'yyyy-MM-dd', new Date()) : undefined}
+                  onSelect={(day) => {
+                    if (day) setDate(format(day, 'yyyy-MM-dd'));
+                  }}
+                  defaultMonth={date ? parse(date, 'yyyy-MM-dd', new Date()) : undefined}
+                />
+              </PopoverContent>
+            </Popover>
           </div>
 
           {/* isFixed */}
