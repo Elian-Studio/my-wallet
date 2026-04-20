@@ -47,13 +47,17 @@ model Category {
   id        String          @id @default(cuid())
   name      String
   type      TransactionType
+  parentId  String?         @map("parent_id")
   sortOrder Int             @default(0) @map("sort_order")
   isActive  Boolean         @default(true) @map("is_active")
 
+  parent       Category?     @relation("CategoryTree", fields: [parentId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  children     Category[]    @relation("CategoryTree")
   transactions Transaction[]
   budgets      Budget[]
 
-  @@unique([name, type])
+  @@unique([name, type, parentId])
+  @@index([parentId])
   @@map("categories")
   @@schema("my_wallet")
 }
