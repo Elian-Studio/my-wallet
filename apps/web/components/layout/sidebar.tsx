@@ -50,6 +50,9 @@ const navItems: NavItem[] = [
     label: '설정',
     href: '/settings',
     icon: Settings,
+    children: [
+      { label: '카테고리 관리', href: '/settings/categories' },
+    ],
   },
 ];
 

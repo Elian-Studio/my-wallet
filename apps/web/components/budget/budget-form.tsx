@@ -20,6 +20,36 @@ import {
 } from '@/components/ui/select';
 import type { Budget, Category, CreateBudgetDto, UpdateBudgetDto } from '@/lib/api/budget';
 
+// 카테고리를 부모 → 자식 순서로 정렬 (parent 먼저, 그 다음 그 parent의 children)
+function orderCategoriesForDisplay(cats: Category[]): Category[] {
+  const roots = cats.filter((c) => !c.parentId);
+  const childrenByParent = new Map<string, Category[]>();
+  for (const c of cats) {
+    if (c.parentId) {
+      const arr = childrenByParent.get(c.parentId) ?? [];
+      arr.push(c);
+      childrenByParent.set(c.parentId, arr);
+    }
+  }
+  roots.sort((a, b) => a.sortOrder - b.sortOrder);
+  for (const arr of childrenByParent.values()) {
+    arr.sort((a, b) => a.sortOrder - b.sortOrder);
+  }
+  const ordered: Category[] = [];
+  for (const r of roots) {
+    ordered.push(r);
+    const kids = childrenByParent.get(r.id) ?? [];
+    ordered.push(...kids);
+  }
+  // 부모가 목록에 없는 고아 자식들 처리
+  for (const c of cats) {
+    if (c.parentId && !cats.find((p) => p.id === c.parentId)) {
+      if (!ordered.find((o) => o.id === c.id)) ordered.push(c);
+    }
+  }
+  return ordered;
+}
+
 interface BudgetFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -27,6 +57,10 @@ interface BudgetFormProps {
   budget?: Budget | null;
   month: string; // YYYY-MM
   onSubmit: (dto: CreateBudgetDto | UpdateBudgetDto) => Promise<void>;
+  /** 새 예산 추가 시 미리 선택될 카테고리 ID (inline +설정 버튼 용) */
+  prefilledCategoryId?: string | null;
+  /** 새 예산 추가 시 미리 입력될 금액 (추천 금액) */
+  prefilledAmount?: number;
 }
 
 const TYPE_LABELS: Record<TransactionType, string> = {
@@ -44,6 +78,8 @@ export function BudgetForm({
   budget,
   month,
   onSubmit,
+  prefilledCategoryId,
+  prefilledAmount,
 }: BudgetFormProps) {
   const [type, setType] = useState<TransactionType>('EXPENSE');
   const [categoryId, setCategoryId] = useState('');
@@ -56,15 +92,26 @@ export function BudgetForm({
       setType(budget.type);
       setCategoryId(budget.categoryId);
       setAmount(budget.amount.toLocaleString('ko-KR'));
+    } else if (prefilledCategoryId) {
+      const prefilled = categories.find((c) => c.id === prefilledCategoryId);
+      setType(prefilled?.type ?? 'EXPENSE');
+      setCategoryId(prefilledCategoryId);
+      setAmount(
+        prefilledAmount && prefilledAmount > 0
+          ? prefilledAmount.toLocaleString('ko-KR')
+          : '',
+      );
     } else {
       setType('EXPENSE');
       setCategoryId('');
       setAmount('');
     }
     setError(null);
-  }, [budget, open]);
+  }, [budget, open, prefilledCategoryId, prefilledAmount, categories]);
 
-  const filteredCategories = categories.filter((c) => c.type === type);
+  const filteredCategories = orderCategoriesForDisplay(
+    categories.filter((c) => c.type === type),
+  );
 
   const handleTypeChange = (val: string) => {
     setType(val as TransactionType);
@@ -141,7 +188,14 @@ export function BudgetForm({
                 <SelectContent>
                   {filteredCategories.map((c) => (
                     <SelectItem key={c.id} value={c.id}>
-                      {c.name}
+                      {c.parentId ? (
+                        <span>
+                          <span className="text-muted-foreground">└ </span>
+                          {c.name}
+                        </span>
+                      ) : (
+                        <span className="font-medium">{c.name}</span>
+                      )}
                     </SelectItem>
                   ))}
                 </SelectContent>

@@ -4,6 +4,7 @@ import type {
   BudgetAnalysisItem,
   MonthSummary,
   PaginatedResponse,
+  CategoryNode,
 } from '@my-wallet/shared';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -12,6 +13,8 @@ export interface Category {
   id: string;
   name: string;
   type: TransactionType;
+  parentId: string | null;
+  sortOrder: number;
   isActive: boolean;
 }
 
@@ -131,13 +134,20 @@ export function fetchSavingCategories(): Promise<Category[]> {
 export interface CreateCategoryDto {
   name: string;
   type: 'INCOME' | 'EXPENSE' | 'SAVING';
+  parentId?: string | null;
   sortOrder?: number;
 }
 
 export interface UpdateCategoryDto {
   name?: string;
+  parentId?: string | null;
   sortOrder?: number;
   isActive?: boolean;
+}
+
+export function fetchCategoryTree(type?: TransactionType): Promise<CategoryNode[]> {
+  const query = type ? `?type=${type}` : '';
+  return apiClient.get<CategoryNode[]>(`/categories/tree${query}`);
 }
 
 export function createCategory(dto: CreateCategoryDto): Promise<Category> {

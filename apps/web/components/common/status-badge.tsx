@@ -19,6 +19,10 @@ const statusConfig: Record<BudgetStatus, { label: string; className: string }> =
     label: '초과',
     className: 'bg-over/10 text-over border-over/20',
   },
+  UNSET: {
+    label: '미설정',
+    className: 'bg-muted text-muted-foreground border-border',
+  },
 };
 
 export function StatusBadge({ status, className }: StatusBadgeProps) {

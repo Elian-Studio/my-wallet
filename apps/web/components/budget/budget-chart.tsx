@@ -11,6 +11,7 @@ const STATUS_COLORS: Record<BudgetStatus, string> = {
   GOOD: '#22c55e',
   WARNING: '#f59e0b',
   OVER: '#ef4444',
+  UNSET: '#94a3b8',
 };
 
 const BUDGET_BG = '#e2e8f0';
