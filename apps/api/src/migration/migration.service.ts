@@ -44,9 +44,15 @@ export class MigrationService {
 
     for (const item of dto.items) {
       try {
-        const category = await this.prisma.category.findFirst({
-          where: { name: item.categoryName, type: item.type },
-        });
+        // 2-depth 도입 이후: CSV categoryName은 기본적으로 루트 카테고리로 간주.
+        // 같은 name+type이 여러 parent 아래 존재해도 parentId=null 레거시로 우선 매칭.
+        const category =
+          (await this.prisma.category.findFirst({
+            where: { name: item.categoryName, type: item.type, parentId: null },
+          })) ??
+          (await this.prisma.category.findFirst({
+            where: { name: item.categoryName, type: item.type },
+          }));
 
         if (!category) {
           skipped++;
@@ -94,9 +100,14 @@ export class MigrationService {
 
     for (const item of dto.items) {
       try {
-        const category = await this.prisma.category.findFirst({
-          where: { name: item.categoryName, type: item.type },
-        });
+        // 2-depth 도입 이후: CSV categoryName은 기본적으로 루트 카테고리로 간주.
+        const category =
+          (await this.prisma.category.findFirst({
+            where: { name: item.categoryName, type: item.type, parentId: null },
+          })) ??
+          (await this.prisma.category.findFirst({
+            where: { name: item.categoryName, type: item.type },
+          }));
 
         if (!category) {
           skipped++;
