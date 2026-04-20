@@ -13,6 +13,11 @@ export class CreateCategoryDto {
   })
   type: 'INCOME' | 'EXPENSE' | 'SAVING';
 
+  @ApiPropertyOptional({ description: '상위 카테고리 ID (대분류일 경우 null)' })
+  @IsOptional()
+  @IsString()
+  parentId?: string | null;
+
   @ApiPropertyOptional({ description: '정렬 순서', default: 0 })
   @IsOptional()
   @IsInt()
