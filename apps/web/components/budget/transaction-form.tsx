@@ -81,7 +81,31 @@ export function TransactionForm({
     setError(null);
   }, [transaction, open]);
 
-  const filteredCategories = categories.filter((c) => c.type === type);
+  const filteredCategories = (() => {
+    const cats = categories.filter((c) => c.type === type);
+    const roots = cats.filter((c) => !c.parentId).sort((a, b) => a.sortOrder - b.sortOrder);
+    const childrenByParent = new Map<string, typeof cats>();
+    for (const c of cats) {
+      if (c.parentId) {
+        const arr = childrenByParent.get(c.parentId) ?? [];
+        arr.push(c);
+        childrenByParent.set(c.parentId, arr);
+      }
+    }
+    const ordered: typeof cats = [];
+    for (const r of roots) {
+      ordered.push(r);
+      const kids = (childrenByParent.get(r.id) ?? []).sort((a, b) => a.sortOrder - b.sortOrder);
+      ordered.push(...kids);
+    }
+    // 고아 leaf는 끝에 추가
+    for (const c of cats) {
+      if (c.parentId && !cats.find((p) => p.id === c.parentId) && !ordered.find((o) => o.id === c.id)) {
+        ordered.push(c);
+      }
+    }
+    return ordered;
+  })();
 
   const handleTypeChange = (val: string) => {
     setType(val as TransactionType);
@@ -151,7 +175,14 @@ export function TransactionForm({
               <SelectContent>
                 {filteredCategories.map((c) => (
                   <SelectItem key={c.id} value={c.id}>
-                    {c.name}
+                    {c.parentId ? (
+                      <span>
+                        <span className="text-muted-foreground">└ </span>
+                        {c.name}
+                      </span>
+                    ) : (
+                      <span className="font-medium">{c.name}</span>
+                    )}
                   </SelectItem>
                 ))}
               </SelectContent>

@@ -1,10 +1,16 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import type { BudgetAnalysisItem, MonthSummary } from '@my-wallet/shared';
+import type {
+  BudgetAnalysisItem,
+  MonthSummary,
+  CategoryNode,
+  TransactionType,
+} from '@my-wallet/shared';
 import {
   fetchTransactions,
   fetchCategories,
+  fetchCategoryTree,
   fetchMonthlySummary,
   fetchCategoryBreakdown,
   fetchBudgets,
@@ -151,15 +157,18 @@ interface UseCategoriesReturn {
   categories: Category[];
   loading: boolean;
   error: string | null;
+  refetch: () => void;
 }
 
 export function useCategories(): UseCategoriesReturn {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [tick, setTick] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
+    setLoading(true);
     fetchCategories()
       .then((res) => {
         if (!cancelled) setCategories(res);
@@ -171,9 +180,48 @@ export function useCategories(): UseCategoriesReturn {
         if (!cancelled) setLoading(false);
       });
     return () => { cancelled = true; };
-  }, []);
+  }, [tick]);
 
-  return { categories, loading, error };
+  const refetch = useCallback(() => setTick((t) => t + 1), []);
+
+  return { categories, loading, error, refetch };
+}
+
+// ─── useCategoryTree ──────────────────────────────────────────────────────────
+
+interface UseCategoryTreeReturn {
+  tree: CategoryNode[];
+  loading: boolean;
+  error: string | null;
+  refetch: () => void;
+}
+
+export function useCategoryTree(type?: TransactionType): UseCategoryTreeReturn {
+  const [tree, setTree] = useState<CategoryNode[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [tick, setTick] = useState(0);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+    fetchCategoryTree(type)
+      .then((res) => {
+        if (!cancelled) setTree(res);
+      })
+      .catch((err) => {
+        if (!cancelled) setError(err.message ?? '카테고리 트리를 불러오지 못했습니다.');
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => { cancelled = true; };
+  }, [type, tick]);
+
+  const refetch = useCallback(() => setTick((t) => t + 1), []);
+
+  return { tree, loading, error, refetch };
 }
 
 // ─── useMonthlySummary ────────────────────────────────────────────────────────

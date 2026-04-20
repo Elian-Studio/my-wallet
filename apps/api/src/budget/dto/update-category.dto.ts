@@ -7,6 +7,11 @@ export class UpdateCategoryDto {
   @IsString()
   name?: string;
 
+  @ApiPropertyOptional({ description: '상위 카테고리 ID (null로 설정 시 대분류로 변경)' })
+  @IsOptional()
+  @IsString()
+  parentId?: string | null;
+
   @ApiPropertyOptional({ description: '정렬 순서' })
   @IsOptional()
   @IsInt()
